@@ -1,8 +1,8 @@
 #!/bin/bash
 
-javac -d bin src/HuffmanTree.java
+javac -d bin src/Run.java
 cd bin
-java HuffmanTree 
+java Run
 cd ..
 rm -rf bin
 
