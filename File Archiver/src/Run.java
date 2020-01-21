@@ -1,13 +1,20 @@
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Scanner;
 import java.util.*;
+import java.util.Map.Entry;
 
 class pair<F, S> {
 
@@ -145,12 +152,13 @@ class HuffmanTree extends Pair {
 
 }
 
-class ProcessInput {
+class InputOutput {
 
 	public String text;
 	public int ap[];
+	public static HashMap<Character, String> pairs = new HashMap<Character, String>();
 
-	ProcessInput() {
+	InputOutput() {
 
 		this.text = "";
 		ap = new int[256];
@@ -158,15 +166,17 @@ class ProcessInput {
 	}
 
 	public void read() {
+
 		BufferedReader myread = null;
 		try {
+
 			myread = new BufferedReader(new FileReader("/home/razvan/Desktop/File-Archiver/File Archiver/test.txt"));
 			String currentLine = "";
+
 			while ((currentLine = myread.readLine()) != null) {
-				System.out.println(currentLine) ;
+				System.out.println(currentLine);
 				this.text = this.text + currentLine;
 			}
-			//System.out.println(this.text);
 
 		} catch (IOException e) {
 
@@ -181,6 +191,75 @@ class ProcessInput {
 				ex.printStackTrace();
 			}
 		}
+
+	}
+
+	public static void traverse(HuffmanTree HEAD, String binar) {
+
+		if (HEAD.getChars() != null) {
+
+			pairs.put(HEAD.getChars(), binar);
+
+		} else {
+
+			traverse(HEAD.left(null), binar + "0");
+			traverse(HEAD.right(null), binar + "1");
+		}
+	}
+
+	public void print() {
+
+		for (Entry<Character, String> entry : pairs.entrySet()) {
+
+			String value = entry.getValue();
+			Character key = entry.getKey();
+			System.out.println(key + "=>" + value);
+
+		}
+
+	}
+
+	public void write(HuffmanTree HEAD) throws IOException {
+
+		traverse(HEAD, "");
+		print();
+
+		char character;
+		String str = "";
+
+		for (int i = 0; i < text.length(); ++i) {
+			character = text.charAt(i);
+			str = str + pairs.get(character);
+		}
+
+		String targetFile = "/home/razvan/Desktop/File-Archiver/File Archiver/output.bin";
+
+		File old_file = new File(targetFile);
+		old_file.delete();
+
+		File file = new File(targetFile);
+		for (int i = 0; i < str.length(); i = i + 8) {
+
+			String x;
+
+			if (i + 7 <= str.length())
+				x = str.substring(i, i + 8);
+			else
+				x = str.substring(i, str.length());
+
+			byte number = (byte) Integer.parseInt(x,2);
+		    
+			try (OutputStream out = new FileOutputStream(file, true)) {
+				out.write(number);
+			}
+
+		}
+
+		// try (OutputStream out = new FileOutputStream(file)) {
+		// out.write(data[0]) ;
+		// out.write(data[1]) ;
+		// }
+
 	}
 
 	public String getString() {
@@ -228,25 +307,11 @@ class ProcessInput {
 
 class Run {
 
-	public static void traverse(HuffmanTree HEAD, String binar) {
-
-		if (HEAD.getChars() != null) {
-
-			System.out.print(HEAD.getChars());
-			System.out.println(":" + binar);
-
-		} else {
-
-			traverse(HEAD.left(null), binar + "0");
-			traverse(HEAD.right(null), binar + "1");
-		}
-	}
-
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		PriorityQueue<Tree> obj = new PriorityQueue<Tree>(30, new TreeComparator());
 		HuffmanTree HEAD = null;
-		ProcessInput file = new ProcessInput();
+		InputOutput file = new InputOutput();
 
 		file.read();
 		file.processString();
@@ -298,8 +363,6 @@ class Run {
 				HEAD = address1;
 
 		}
-
-		traverse(HEAD, "");
-
+		file.write(HEAD);
 	}
 }
