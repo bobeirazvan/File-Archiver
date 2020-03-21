@@ -1,13 +1,14 @@
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -172,10 +173,15 @@ class InputOutput {
 
 			myread = new BufferedReader(new FileReader("/home/razvan/Desktop/File-Archiver/File Archiver/test.txt"));
 			String currentLine = "";
-
+            
 			while ((currentLine = myread.readLine()) != null) {
-				System.out.println(currentLine);
-				this.text = this.text + currentLine;
+		
+				if(this.text == "" )
+				   this.text =  currentLine  + '\n'; 
+				else
+				   this.text = this.text +  currentLine + '\n';
+				//this.text = this.text + currentLine;
+				//System.out.println(this.text);
 			}
 
 		} catch (IOException e) {
@@ -186,11 +192,13 @@ class InputOutput {
 
 			try {
 				if (myread != null)
-					myread.close();
+				    myread.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
 		}
+		
+		System.out.print(this.text);
 
 	}
 
@@ -213,7 +221,7 @@ class InputOutput {
 
 			String value = entry.getValue();
 			Character key = entry.getKey();
-			System.out.println(key + "=>" + value);
+			System.out.println(key + "=>" + Integer.parseInt(value,10));
 
 		}
 
@@ -226,40 +234,97 @@ class InputOutput {
 
 		char character;
 		String str = "";
+		String targetFile = "/home/razvan/Desktop/File-Archiver/File Archiver/output.huf";
+		int k = 1 ;
+		
+		
+                File file = new File(targetFile);
+		file.delete();
+		file = new File(targetFile);
+		
+		for (Entry<Character, String> entry : pairs.entrySet()) {
 
-		for (int i = 0; i < text.length(); ++i) {
+			String value = entry.getValue();
+	     	        Character key = entry.getKey();
+			
+			try (OutputStream out = new FileOutputStream(file, true)) {
+				
+				 String frequency = Integer.toString(ap[key]);
+				 out.write(key);
+				 
+				 for(int i = 0 ; i < frequency.length() ; i ++) {
+				     out.write(frequency.charAt(i));
+				 }
+				 
+				 if(k < pairs.size()) 
+				    out.write('-');
+				 else
+				    out.write('\n');
+				 
+		         k = k + 1 ;
+			}
+
+		}
+		
+	   for (int i = 0; i < text.length(); ++i) {
+			
 			character = text.charAt(i);
 			str = str + pairs.get(character);
 		}
-
-		String targetFile = "/home/razvan/Desktop/File-Archiver/File Archiver/output.bin";
-
-		File old_file = new File(targetFile);
-		old_file.delete();
-
-		File file = new File(targetFile);
+		
 		for (int i = 0; i < str.length(); i = i + 8) {
-
+        
 			String x;
-
-			if (i + 7 <= str.length())
+        
+			if (i + 7 <= str.length()) {
 				x = str.substring(i, i + 8);
-			else
-				x = str.substring(i, str.length());
-
+			}
+			else {
+			    x = str.substring(i, str.length());
+			}
+        
 			byte number = (byte) Integer.parseInt(x,2);
 		    
 			try (OutputStream out = new FileOutputStream(file, true)) {
 				out.write(number);
 			}
-
+        
 		}
+		
+		try
+	    {
+	        byte[] buffer = new byte[(int)(file.length())];
+	        FileInputStream inputStream = new FileInputStream(file);
 
-		// try (OutputStream out = new FileOutputStream(file)) {
-		// out.write(data[0]) ;
-		// out.write(data[1]) ;
-		// }
+	        int total = 0;
+	        int nRead = 0;
+	        
+	        while((nRead = inputStream.read(buffer)) != -1)
+	        {
+	        	for (int i = 0; i < nRead; i++) {
+	        		
+	        	    String bin=Integer.toBinaryString(0xFF & buffer[i] | 0x100).substring(1);
+	        	   // System.out.println(bin);
 
+	        	}
+	        	
+	            total += nRead;
+	        }
+	        
+	        inputStream.close();
+	        //System.out.println(total);
+	        
+	    }
+	    catch(FileNotFoundException ex)
+	    {
+	        System.out.println("File not found.");
+	    }
+
+	    catch(IOException ex)
+	    {
+	        System.out.println(ex);
+	    }
+        
 	}
 
 	public String getString() {
@@ -272,7 +337,7 @@ class InputOutput {
 
 		CharacterIterator it = new StringCharacterIterator(getString());
 
-		while (it.current() != CharacterIterator.DONE) {
+		while (it.current() != CharacterIterator.DONE) {//&& (it.current() !='\n')) {
 
 			ap[it.current()]++;
 			it.next();
@@ -305,7 +370,7 @@ class InputOutput {
 
 }
 
-class Run {
+class encode {
 
 	public static void main(String[] args) throws IOException {
 
