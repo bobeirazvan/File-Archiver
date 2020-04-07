@@ -1,4 +1,4 @@
-﻿#!/usr/bin/bash
+﻿#!/usr/bin/env bash
 
 javac -d bin src/encode.java
 cd bin
